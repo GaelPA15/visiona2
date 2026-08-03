@@ -30,9 +30,9 @@ import {
 } from "lucide-react";
 
 import { useParams } from "next/navigation";
+
 import {
   useEffect,
-  useMemo,
   useState,
   type FormEvent,
 } from "react";
@@ -44,13 +44,38 @@ import type {
   VisionRequest,
 } from "@/types";
 
-const requestStatusLabels: Record<RequestStatus, string> = {
+/* =====================================================
+   CONFIGURACIÓN GENERAL
+===================================================== */
+
+const GAEL_ACCOUNT_ID = "gael-demo";
+
+function isGaelAccount(userId?: string): boolean {
+  return userId === GAEL_ACCOUNT_ID;
+}
+
+function createUserStorageKey(
+  baseKey: string,
+  userId?: string,
+): string {
+  return `${baseKey}_${userId ?? "guest"}`;
+}
+
+/* =====================================================
+   SOLICITUDES
+===================================================== */
+
+const requestStatusLabels: Record<
+  RequestStatus,
+  string
+> = {
   RECIBIDA: "Recibida",
   REGISTRADA: "Registrada",
   CLASIFICADA: "Clasificada",
   DATOS_INCOMPLETOS: "Datos incompletos",
   EN_PROCESO: "En proceso",
-  PENDIENTE_APROBACION: "Pendiente de aprobación",
+  PENDIENTE_APROBACION:
+    "Pendiente de aprobación",
   EN_CORRECCION: "En corrección",
   APROBADA: "Aprobada",
   EN_EJECUCION: "En ejecución",
@@ -68,7 +93,11 @@ const requestStatusOrder: RequestStatus[] = [
   "FINALIZADA",
 ];
 
-const initialRequests: VisionRequest[] = [
+/*
+  Estas solicitudes pertenecen únicamente
+  a la cuenta de demostración de Gael.
+*/
+const initialGaelRequests: VisionRequest[] = [
   {
     id: "SOL-2401",
     title: "Orientación para primer empleo",
@@ -95,6 +124,10 @@ const initialRequests: VisionRequest[] = [
   },
 ];
 
+/* =====================================================
+   EMPLEOS
+===================================================== */
+
 const jobs = [
   {
     id: 1,
@@ -103,17 +136,25 @@ const jobs = [
     location: "México",
     mode: "Remoto",
     salary: "$15,000 - $20,000 MXN",
-    tags: ["React", "TypeScript", "Primer empleo"],
+    tags: [
+      "React",
+      "TypeScript",
+      "Primer empleo",
+    ],
     featured: true,
   },
   {
     id: 2,
-    title: "Practicante de Marketing Digital",
+    title:
+      "Practicante de Marketing Digital",
     company: "Impulso Creativo",
     location: "Ciudad de México",
     mode: "Híbrido",
     salary: "$8,000 MXN",
-    tags: ["Marketing", "Redes sociales"],
+    tags: [
+      "Marketing",
+      "Redes sociales",
+    ],
     featured: false,
   },
   {
@@ -123,7 +164,11 @@ const jobs = [
     location: "Monterrey",
     mode: "Remoto",
     salary: "$14,000 - $18,000 MXN",
-    tags: ["Excel", "SQL", "Power BI"],
+    tags: [
+      "Excel",
+      "SQL",
+      "Power BI",
+    ],
     featured: false,
   },
   {
@@ -133,41 +178,75 @@ const jobs = [
     location: "Guadalajara",
     mode: "Híbrido",
     salary: "$16,000 MXN",
-    tags: ["Figma", "UX", "Diseño"],
+    tags: [
+      "Figma",
+      "UX",
+      "Diseño",
+    ],
     featured: false,
   },
 ];
 
+/* =====================================================
+   CURSOS
+===================================================== */
+
 const courses = [
   {
-    title: "Finanzas personales desde cero",
+    title:
+      "Finanzas personales desde cero",
     category: "Finanzas",
     duration: "2 h 30 min",
     lessons: 8,
-    progress: 65,
+    demoProgress: 65,
     icon: WalletCards,
   },
   {
-    title: "Cómo validar una idea de negocio",
+    title:
+      "Cómo validar una idea de negocio",
     category: "Emprendimiento",
     duration: "3 horas",
     lessons: 10,
-    progress: 30,
+    demoProgress: 30,
     icon: Rocket,
   },
   {
-    title: "Marca personal para tu primer empleo",
+    title:
+      "Marca personal para tu primer empleo",
     category: "Empleo",
     duration: "1 h 45 min",
     lessons: 6,
-    progress: 0,
+    demoProgress: 0,
     icon: BriefcaseBusiness,
   },
 ];
 
+/* =====================================================
+   COMPONENTE PRINCIPAL
+===================================================== */
+
 export default function ModuleView() {
   const params = useParams();
-  const moduleName = String(params.modulo ?? "");
+  const { user, loading } = useAuth();
+
+  const moduleName = String(
+    params.modulo ?? "",
+  );
+
+  if (loading || !user) {
+    return (
+      <div className="empty-module">
+        <Sparkles size={46} />
+
+        <h2>Preparando tu espacio</h2>
+
+        <p>
+          Estamos cargando la información de
+          tu cuenta.
+        </p>
+      </div>
+    );
+  }
 
   switch (moduleName) {
     case "descubre":
@@ -201,12 +280,21 @@ export default function ModuleView() {
       return (
         <div className="empty-module">
           <Compass size={50} />
+
           <h2>Sección no encontrada</h2>
-          <p>La sección que buscas todavía no está disponible.</p>
+
+          <p>
+            La sección que buscas todavía
+            no está disponible.
+          </p>
         </div>
       );
   }
 }
+
+/* =====================================================
+   ENCABEZADO DE LOS MÓDULOS
+===================================================== */
 
 function ModuleHeading({
   eyebrow,
@@ -226,14 +314,24 @@ function ModuleHeading({
   );
 }
 
+/* =====================================================
+   DESCUBRE
+===================================================== */
+
 function DiscoverModule() {
-  const [testStarted, setTestStarted] = useState(false);
-  const [question, setQuestion] = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const [testStarted, setTestStarted] =
+    useState(false);
+
+  const [question, setQuestion] =
+    useState(0);
+
+  const [completed, setCompleted] =
+    useState(false);
 
   const questions = [
     {
-      title: "¿Qué actividad disfrutas más?",
+      title:
+        "¿Qué actividad disfrutas más?",
       options: [
         "Crear o programar cosas",
         "Organizar equipos",
@@ -242,7 +340,8 @@ function DiscoverModule() {
       ],
     },
     {
-      title: "¿Qué problema preferirías resolver?",
+      title:
+        "¿Qué problema preferirías resolver?",
       options: [
         "Un problema tecnológico",
         "Una necesidad de un negocio",
@@ -251,7 +350,8 @@ function DiscoverModule() {
       ],
     },
     {
-      title: "¿Qué entorno te llama más la atención?",
+      title:
+        "¿Qué entorno te llama más la atención?",
       options: [
         "Una empresa tecnológica",
         "Mi propio emprendimiento",
@@ -262,15 +362,30 @@ function DiscoverModule() {
   ];
 
   function selectAnswer(): void {
-    if (question < questions.length - 1) {
-      setQuestion((current) => current + 1);
+    if (
+      question <
+      questions.length - 1
+    ) {
+      setQuestion(
+        (current) => current + 1,
+      );
+
       return;
     }
 
     setCompleted(true);
   }
 
-  if (testStarted && !completed) {
+  function restartTest(): void {
+    setCompleted(false);
+    setTestStarted(false);
+    setQuestion(0);
+  }
+
+  if (
+    testStarted &&
+    !completed
+  ) {
     return (
       <div className="module-page">
         <ModuleHeading
@@ -282,11 +397,17 @@ function DiscoverModule() {
         <section className="test-card">
           <div className="test-progress-header">
             <span>
-              Pregunta {question + 1} de {questions.length}
+              Pregunta {question + 1} de{" "}
+              {questions.length}
             </span>
 
             <strong>
-              {Math.round(((question + 1) / questions.length) * 100)}%
+              {Math.round(
+                ((question + 1) /
+                  questions.length) *
+                  100,
+              )}
+              %
             </strong>
           </div>
 
@@ -294,16 +415,28 @@ function DiscoverModule() {
             <div
               className="progress-value"
               style={{
-                width: `${((question + 1) / questions.length) * 100}%`,
+                width: `${
+                  ((question + 1) /
+                    questions.length) *
+                  100
+                }%`,
               }}
             />
           </div>
 
-          <h3>{questions[question].title}</h3>
+          <h3>
+            {questions[question].title}
+          </h3>
 
           <div className="test-options">
-            {questions[question].options.map((option) => (
-              <button key={option} onClick={selectAnswer}>
+            {questions[
+              question
+            ].options.map((option) => (
+              <button
+                type="button"
+                key={option}
+                onClick={selectAnswer}
+              >
                 <span />
                 {option}
                 <ChevronRight size={19} />
@@ -321,22 +454,32 @@ function DiscoverModule() {
         <ModuleHeading
           eyebrow="TUS RESULTADOS"
           title="Encontramos rutas muy compatibles contigo"
-          description="Estas recomendaciones se generan con base en tus respuestas de demostración."
+          description="Estas recomendaciones se generan con base en tus respuestas."
         />
 
         <section className="results-hero">
           <div className="results-score">
             <strong>92%</strong>
-            <span>compatibilidad principal</span>
+
+            <span>
+              compatibilidad principal
+            </span>
           </div>
 
           <div>
-            <span className="module-tag">MEJOR COINCIDENCIA</span>
-            <h3>Tecnología y desarrollo digital</h3>
+            <span className="module-tag">
+              MEJOR COINCIDENCIA
+            </span>
+
+            <h3>
+              Tecnología y desarrollo digital
+            </h3>
 
             <p>
-              Tu perfil refleja pensamiento lógico, creatividad, curiosidad y
-              gusto por resolver problemas mediante herramientas digitales.
+              Tu perfil refleja pensamiento
+              lógico, creatividad, curiosidad
+              y gusto por resolver problemas
+              mediante herramientas digitales.
             </p>
 
             <div className="tag-list">
@@ -351,33 +494,52 @@ function DiscoverModule() {
           <article>
             <span>86%</span>
             <Rocket size={27} />
-            <h3>Emprendimiento digital</h3>
-            <p>Crea productos, servicios y soluciones mediante tecnología.</p>
+
+            <h3>
+              Emprendimiento digital
+            </h3>
+
+            <p>
+              Crea productos, servicios y
+              soluciones mediante tecnología.
+            </p>
           </article>
 
           <article>
             <span>79%</span>
             <Brain size={27} />
-            <h3>Experiencia de usuario</h3>
-            <p>Investiga necesidades y diseña experiencias útiles.</p>
+
+            <h3>
+              Experiencia de usuario
+            </h3>
+
+            <p>
+              Investiga necesidades y diseña
+              experiencias útiles.
+            </p>
           </article>
 
           <article>
             <span>74%</span>
             <TrendingUp size={27} />
-            <h3>Analítica de negocios</h3>
-            <p>Utiliza datos para tomar decisiones y mejorar resultados.</p>
+
+            <h3>
+              Analítica de negocios
+            </h3>
+
+            <p>
+              Utiliza datos para tomar
+              decisiones y mejorar resultados.
+            </p>
           </article>
         </div>
 
         <button
+          type="button"
           className="button button-secondary"
-          onClick={() => {
-            setCompleted(false);
-            setQuestion(0);
-          }}
+          onClick={restartTest}
         >
-          Repetir demostración
+          Repetir evaluación
         </button>
       </div>
     );
@@ -393,12 +555,20 @@ function DiscoverModule() {
 
       <section className="discover-hero">
         <div>
-          <span className="module-tag">TEST PRINCIPAL</span>
-          <h3>¿Qué camino puede encajar mejor contigo?</h3>
+          <span className="module-tag">
+            TEST PRINCIPAL
+          </span>
+
+          <h3>
+            ¿Qué camino puede encajar
+            mejor contigo?
+          </h3>
 
           <p>
-            Completa una evaluación interactiva para recibir recomendaciones de
-            carreras, empleos y áreas de desarrollo.
+            Completa una evaluación
+            interactiva para recibir
+            recomendaciones de carreras,
+            empleos y áreas de desarrollo.
           </p>
 
           <div className="discover-features">
@@ -414,8 +584,11 @@ function DiscoverModule() {
           </div>
 
           <button
+            type="button"
             className="button button-primary"
-            onClick={() => setTestStarted(true)}
+            onClick={() =>
+              setTestStarted(true)
+            }
           >
             Comenzar evaluación
             <ArrowRight size={19} />
@@ -431,42 +604,91 @@ function DiscoverModule() {
       <div className="module-card-grid">
         <article className="module-card">
           <Brain size={26} />
+
           <h3>Personalidad</h3>
-          <p>Conoce cómo piensas, decides y colaboras con otras personas.</p>
-          <span>0 de 12 preguntas</span>
+
+          <p>
+            Conoce cómo piensas, decides y
+            colaboras con otras personas.
+          </p>
+
+          <span>
+            0 de 12 preguntas
+          </span>
         </article>
 
         <article className="module-card">
           <Sparkles size={26} />
+
           <h3>Habilidades</h3>
-          <p>Identifica capacidades que ya tienes y otras que puedes desarrollar.</p>
-          <span>0 de 10 preguntas</span>
+
+          <p>
+            Identifica capacidades que ya
+            tienes y otras que puedes
+            desarrollar.
+          </p>
+
+          <span>
+            0 de 10 preguntas
+          </span>
         </article>
 
         <article className="module-card">
           <BookOpen size={26} />
-          <h3>Estilo de aprendizaje</h3>
-          <p>Descubre de qué manera aprendes con mayor facilidad.</p>
-          <span>0 de 8 preguntas</span>
+
+          <h3>
+            Estilo de aprendizaje
+          </h3>
+
+          <p>
+            Descubre de qué manera aprendes
+            con mayor facilidad.
+          </p>
+
+          <span>
+            0 de 8 preguntas
+          </span>
         </article>
       </div>
     </div>
   );
 }
 
-function JobsModule() {
-  const [search, setSearch] = useState("");
-  const [appliedJobs, setAppliedJobs] = useState<number[]>([]);
+/* =====================================================
+   EMPLEOS
+===================================================== */
 
-  const visibleJobs = jobs.filter((job) =>
-    `${job.title} ${job.company} ${job.tags.join(" ")}`
-      .toLowerCase()
-      .includes(search.toLowerCase()),
+function JobsModule() {
+  const [search, setSearch] =
+    useState("");
+
+  /*
+    Las postulaciones no se comparten
+    entre usuarios y empiezan vacías.
+  */
+  const [
+    appliedJobs,
+    setAppliedJobs,
+  ] = useState<number[]>([]);
+
+  const visibleJobs = jobs.filter(
+    (job) =>
+      `${job.title} ${job.company} ${job.tags.join(
+        " ",
+      )}`
+        .toLowerCase()
+        .includes(
+          search.toLowerCase(),
+        ),
   );
 
-  function applyToJob(jobId: number): void {
+  function applyToJob(
+    jobId: number,
+  ): void {
     setAppliedJobs((current) =>
-      current.includes(jobId) ? current : [...current, jobId],
+      current.includes(jobId)
+        ? current
+        : [...current, jobId],
     );
   }
 
@@ -484,10 +706,17 @@ function JobsModule() {
         <input
           placeholder="Buscar puesto, empresa o habilidad..."
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
         />
 
-        <button className="button button-primary">Buscar</button>
+        <button
+          type="button"
+          className="button button-primary"
+        >
+          Buscar
+        </button>
       </section>
 
       <div className="jobs-layout">
@@ -516,23 +745,42 @@ function JobsModule() {
 
           <div className="jobs-profile-tip">
             <Sparkles size={21} />
-            <strong>Mejora tus coincidencias</strong>
-            <p>Completa tu perfil para encontrar vacantes más compatibles.</p>
+
+            <strong>
+              Mejora tus coincidencias
+            </strong>
+
+            <p>
+              Completa tu perfil para
+              encontrar vacantes más
+              compatibles.
+            </p>
           </div>
         </aside>
 
         <section className="jobs-list">
           <div className="jobs-list-heading">
-            <span>{visibleJobs.length} oportunidades encontradas</span>
-            <button>Más recientes</button>
+            <span>
+              {visibleJobs.length}{" "}
+              oportunidades encontradas
+            </span>
+
+            <button type="button">
+              Más recientes
+            </button>
           </div>
 
           {visibleJobs.map((job) => {
-            const hasApplied = appliedJobs.includes(job.id);
+            const hasApplied =
+              appliedJobs.includes(job.id);
 
             return (
               <article
-                className={`job-card ${job.featured ? "job-featured" : ""}`}
+                className={`job-card ${
+                  job.featured
+                    ? "job-featured"
+                    : ""
+                }`}
                 key={job.id}
               >
                 {job.featured && (
@@ -552,7 +800,11 @@ function JobsModule() {
                     <span>{job.company}</span>
                   </div>
 
-                  <button className="job-favorite" aria-label="Guardar vacante">
+                  <button
+                    type="button"
+                    className="job-favorite"
+                    aria-label="Guardar vacante"
+                  >
                     <Heart size={20} />
                   </button>
                 </div>
@@ -564,7 +816,9 @@ function JobsModule() {
                   </span>
 
                   <span>
-                    <BriefcaseBusiness size={16} />
+                    <BriefcaseBusiness
+                      size={16}
+                    />
                     {job.mode}
                   </span>
 
@@ -576,15 +830,22 @@ function JobsModule() {
 
                 <div className="tag-list">
                   {job.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
+                    <span key={tag}>
+                      {tag}
+                    </span>
                   ))}
                 </div>
 
                 <button
+                  type="button"
                   className={`button ${
-                    hasApplied ? "button-success" : "button-secondary"
+                    hasApplied
+                      ? "button-success"
+                      : "button-secondary"
                   }`}
-                  onClick={() => applyToJob(job.id)}
+                  onClick={() =>
+                    applyToJob(job.id)
+                  }
                   disabled={hasApplied}
                 >
                   {hasApplied ? (
@@ -608,16 +869,32 @@ function JobsModule() {
   );
 }
 
-function BusinessModule() {
-  const [interest, setInterest] = useState("");
-  const [skill, setSkill] = useState("");
-  const [resources, setResources] = useState("");
-  const [generated, setGenerated] = useState(false);
+/* =====================================================
+   NEGOCIOS
+===================================================== */
 
-  function generateBusiness(event: FormEvent<HTMLFormElement>): void {
+function BusinessModule() {
+  const [interest, setInterest] =
+    useState("");
+
+  const [skill, setSkill] =
+    useState("");
+
+  const [resources, setResources] =
+    useState("");
+
+  const [generated, setGenerated] =
+    useState(false);
+
+  function generateBusiness(
+    event: FormEvent<HTMLFormElement>,
+  ): void {
     event.preventDefault();
 
-    if (!interest.trim() || !skill.trim()) {
+    if (
+      !interest.trim() ||
+      !skill.trim()
+    ) {
       return;
     }
 
@@ -633,46 +910,72 @@ function BusinessModule() {
       />
 
       <div className="business-layout">
-        <form className="business-generator" onSubmit={generateBusiness}>
+        <form
+          className="business-generator"
+          onSubmit={generateBusiness}
+        >
           <div className="business-generator-heading">
             <div>
               <Sparkles size={25} />
             </div>
 
             <div>
-              <span>GENERADOR DE IDEAS</span>
-              <h3>Cuéntanos un poco sobre ti</h3>
+              <span>
+                GENERADOR DE IDEAS
+              </span>
+
+              <h3>
+                Cuéntanos un poco sobre ti
+              </h3>
             </div>
           </div>
 
           <label>
             ¿Qué te gusta hacer?
+
             <input
               placeholder="Ejemplo: videojuegos, diseño, cocinar..."
               value={interest}
-              onChange={(event) => setInterest(event.target.value)}
+              onChange={(event) =>
+                setInterest(
+                  event.target.value,
+                )
+              }
             />
           </label>
 
           <label>
             ¿Qué sabes hacer?
+
             <input
               placeholder="Ejemplo: programar, editar, vender..."
               value={skill}
-              onChange={(event) => setSkill(event.target.value)}
+              onChange={(event) =>
+                setSkill(
+                  event.target.value,
+                )
+              }
             />
           </label>
 
           <label>
             ¿Con qué recursos cuentas?
+
             <input
               placeholder="Ejemplo: computadora, teléfono, poco capital..."
               value={resources}
-              onChange={(event) => setResources(event.target.value)}
+              onChange={(event) =>
+                setResources(
+                  event.target.value,
+                )
+              }
             />
           </label>
 
-          <button className="button button-primary" type="submit">
+          <button
+            className="button button-primary"
+            type="submit"
+          >
             <Sparkles size={18} />
             Generar mi idea
           </button>
@@ -682,31 +985,52 @@ function BusinessModule() {
           {!generated ? (
             <div className="business-empty">
               <Lightbulb size={53} />
-              <h3>Tu idea aparecerá aquí</h3>
+
+              <h3>
+                Tu idea aparecerá aquí
+              </h3>
+
               <p>
-                Completa el formulario para generar una propuesta personalizada.
+                Completa el formulario para
+                generar una propuesta
+                personalizada.
               </p>
             </div>
           ) : (
             <div className="generated-business">
-              <span className="module-tag">IDEA GENERADA</span>
+              <span className="module-tag">
+                IDEA GENERADA
+              </span>
 
               <div className="generated-business-icon">
                 <Rocket size={32} />
               </div>
 
-              <h3>Estudio digital para creadores y pequeños negocios</h3>
+              <h3>
+                Estudio digital para
+                creadores y pequeños negocios
+              </h3>
 
               <p>
-                Puedes combinar tu interés en <strong>{interest}</strong> con tu
-                habilidad para <strong>{skill}</strong> y ofrecer productos o
-                servicios digitales a negocios que necesitan mejorar su
-                presencia en internet.
+                Puedes combinar tu interés
+                en{" "}
+                <strong>
+                  {interest}
+                </strong>{" "}
+                con tu habilidad para{" "}
+                <strong>{skill}</strong> y
+                ofrecer productos o servicios
+                digitales a negocios que
+                necesitan mejorar su presencia
+                en internet.
               </p>
 
               <div className="business-data-grid">
                 <div>
-                  <span>Inversión inicial</span>
+                  <span>
+                    Inversión inicial
+                  </span>
+
                   <strong>Baja</strong>
                 </div>
 
@@ -716,13 +1040,18 @@ function BusinessModule() {
                 </div>
 
                 <div>
-                  <span>Potencial digital</span>
+                  <span>
+                    Potencial digital
+                  </span>
+
                   <strong>Alto</strong>
                 </div>
               </div>
 
               <div className="generated-steps">
-                <strong>Primeros pasos</strong>
+                <strong>
+                  Primeros pasos
+                </strong>
 
                 <span>
                   <small>1</small>
@@ -731,16 +1060,21 @@ function BusinessModule() {
 
                 <span>
                   <small>2</small>
-                  Crea tres ejemplos para tu portafolio.
+                  Crea tres ejemplos para tu
+                  portafolio.
                 </span>
 
                 <span>
                   <small>3</small>
-                  Contacta tus primeros cinco clientes.
+                  Contacta tus primeros cinco
+                  clientes.
                 </span>
               </div>
 
-              <button className="button button-secondary">
+              <button
+                type="button"
+                className="button button-secondary"
+              >
                 Guardar en mis proyectos
                 <ArrowRight size={18} />
               </button>
@@ -752,15 +1086,110 @@ function BusinessModule() {
   );
 }
 
+/* =====================================================
+   APRENDIZAJE
+===================================================== */
+
 function LearningModule() {
-  const [courseProgress, setCourseProgress] = useState(
-    courses.map((course) => course.progress),
+  const { user } = useAuth();
+
+  const [
+    courseProgress,
+    setCourseProgress,
+  ] = useState<number[]>(
+    courses.map(() => 0),
   );
 
-  function continueCourse(index: number): void {
-    setCourseProgress((current) =>
-      current.map((progress, currentIndex) =>
-        currentIndex === index ? Math.min(progress + 10, 100) : progress,
+  const coursesStorageKey =
+    createUserStorageKey(
+      "visiona_courses",
+      user?.id,
+    );
+
+  /*
+    Gael recibe los cursos avanzados
+    de demostración.
+
+    Marlen y los usuarios nuevos
+    empiezan con todos los cursos en cero.
+  */
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      const storedProgress =
+        localStorage.getItem(
+          coursesStorageKey,
+        );
+
+      if (storedProgress) {
+        const parsedProgress =
+          JSON.parse(
+            storedProgress,
+          ) as number[];
+
+        setCourseProgress(
+          parsedProgress,
+        );
+
+        return;
+      }
+
+      const initialProgress =
+        isGaelAccount(user.id)
+          ? courses.map(
+              (course) =>
+                course.demoProgress,
+            )
+          : courses.map(() => 0);
+
+      setCourseProgress(
+        initialProgress,
+      );
+
+      localStorage.setItem(
+        coursesStorageKey,
+        JSON.stringify(
+          initialProgress,
+        ),
+      );
+    } catch {
+      setCourseProgress(
+        courses.map(() => 0),
+      );
+    }
+  }, [
+    coursesStorageKey,
+    user,
+  ]);
+
+  function continueCourse(
+    index: number,
+  ): void {
+    const updatedProgress =
+      courseProgress.map(
+        (
+          progress,
+          currentIndex,
+        ) =>
+          currentIndex === index
+            ? Math.min(
+                progress + 10,
+                100,
+              )
+            : progress,
+      );
+
+    setCourseProgress(
+      updatedProgress,
+    );
+
+    localStorage.setItem(
+      coursesStorageKey,
+      JSON.stringify(
+        updatedProgress,
       ),
     );
   }
@@ -775,15 +1204,24 @@ function LearningModule() {
 
       <section className="learning-banner">
         <div>
-          <span className="module-tag">RUTA RECOMENDADA</span>
-          <h3>Prepárate para tu primer empleo</h3>
+          <span className="module-tag">
+            RUTA RECOMENDADA
+          </span>
+
+          <h3>
+            Prepárate para tu primer empleo
+          </h3>
 
           <p>
-            Construye tu perfil, aprende a presentar tus habilidades y
+            Construye tu perfil, aprende a
+            presentar tus habilidades y
             prepárate para entrevistas.
           </p>
 
-          <button className="button button-light">
+          <button
+            type="button"
+            className="button button-light"
+          >
             Ver ruta completa
             <ArrowRight size={18} />
           </button>
@@ -793,87 +1231,169 @@ function LearningModule() {
       </section>
 
       <div className="courses-grid">
-        {courses.map((course, index) => {
-          const Icon = course.icon;
-          const progress = courseProgress[index];
+        {courses.map(
+          (course, index) => {
+            const Icon =
+              course.icon;
 
-          return (
-            <article className="course-card" key={course.title}>
-              <div className="course-cover">
-                <Icon size={36} />
-                <span>{course.category}</span>
-              </div>
+            const progress =
+              courseProgress[index] ?? 0;
 
-              <div className="course-content">
-                <h3>{course.title}</h3>
-
-                <div className="course-meta">
-                  <span>
-                    <Clock3 size={16} />
-                    {course.duration}
-                  </span>
+            return (
+              <article
+                className="course-card"
+                key={course.title}
+              >
+                <div className="course-cover">
+                  <Icon size={36} />
 
                   <span>
-                    <BookOpen size={16} />
-                    {course.lessons} lecciones
+                    {course.category}
                   </span>
                 </div>
 
-                <div className="course-progress-header">
-                  <span>Progreso</span>
-                  <strong>{progress}%</strong>
-                </div>
+                <div className="course-content">
+                  <h3>
+                    {course.title}
+                  </h3>
 
-                <div className="progress-track">
-                  <div
-                    className="progress-value"
-                    style={{
-                      width: `${progress}%`,
-                    }}
-                  />
-                </div>
+                  <div className="course-meta">
+                    <span>
+                      <Clock3 size={16} />
+                      {course.duration}
+                    </span>
 
-                <button
-                  className="button button-secondary"
-                  onClick={() => continueCourse(index)}
-                >
-                  {progress === 0 ? "Comenzar curso" : "Continuar aprendiendo"}
-                  <ArrowRight size={18} />
-                </button>
-              </div>
-            </article>
-          );
-        })}
+                    <span>
+                      <BookOpen size={16} />
+                      {course.lessons}{" "}
+                      lecciones
+                    </span>
+                  </div>
+
+                  <div className="course-progress-header">
+                    <span>Progreso</span>
+                    <strong>
+                      {progress}%
+                    </strong>
+                  </div>
+
+                  <div className="progress-track">
+                    <div
+                      className="progress-value"
+                      style={{
+                        width: `${progress}%`,
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    className="button button-secondary"
+                    onClick={() =>
+                      continueCourse(index)
+                    }
+                  >
+                    {progress === 0
+                      ? "Comenzar curso"
+                      : progress >= 100
+                        ? "Curso completado"
+                        : "Continuar aprendiendo"}
+
+                    <ArrowRight size={18} />
+                  </button>
+                </div>
+              </article>
+            );
+          },
+        )}
       </div>
     </div>
   );
 }
 
-function HealthModule() {
-  const moods = ["😞", "😕", "😐", "🙂", "😁"];
+/* =====================================================
+   SALUD Y BIENESTAR
+===================================================== */
 
-  const [selectedMood, setSelectedMood] = useState("");
-  const [breathing, setBreathing] = useState(false);
-  const [seconds, setSeconds] = useState(30);
+function HealthModule() {
+  const { user } = useAuth();
+
+  const moods = [
+    "😞",
+    "😕",
+    "😐",
+    "🙂",
+    "😁",
+  ];
+
+  const [
+    selectedMood,
+    setSelectedMood,
+  ] = useState("");
+
+  const [breathing, setBreathing] =
+    useState(false);
+
+  const [seconds, setSeconds] =
+    useState(30);
+
+  const accountIsGael =
+    isGaelAccount(user?.id);
+
+  /*
+    Los datos avanzados se muestran
+    únicamente para Gael.
+
+    Las cuentas nuevas aparecen en cero.
+  */
+  const waterProgress =
+    accountIsGael ? 62 : 0;
+
+  const stepsProgress =
+    accountIsGael ? 53 : 0;
+
+  const sleepProgress =
+    accountIsGael ? 78 : 0;
+
+  const waterText =
+    accountIsGael
+      ? "5 de 8 vasos"
+      : "0 de 8 vasos";
+
+  const stepsText =
+    accountIsGael
+      ? "4,250 pasos"
+      : "0 pasos";
+
+  const sleepText =
+    accountIsGael
+      ? "7 horas"
+      : "Sin registro";
 
   useEffect(() => {
     if (!breathing) {
       return;
     }
 
-    const interval = window.setInterval(() => {
-      setSeconds((current) => {
-        if (current <= 1) {
-          window.clearInterval(interval);
-          setBreathing(false);
-          return 30;
-        }
+    const interval =
+      window.setInterval(() => {
+        setSeconds((current) => {
+          if (current <= 1) {
+            window.clearInterval(
+              interval,
+            );
 
-        return current - 1;
-      });
-    }, 1000);
+            setBreathing(false);
 
-    return () => window.clearInterval(interval);
+            return 30;
+          }
+
+          return current - 1;
+        });
+      }, 1000);
+
+    return () =>
+      window.clearInterval(interval);
   }, [breathing]);
 
   return (
@@ -891,14 +1411,24 @@ function HealthModule() {
           </div>
 
           <span>REGISTRO DIARIO</span>
-          <h3>¿Cómo te sientes hoy?</h3>
+
+          <h3>
+            ¿Cómo te sientes hoy?
+          </h3>
 
           <div className="mood-list">
             {moods.map((mood) => (
               <button
+                type="button"
                 key={mood}
-                className={selectedMood === mood ? "mood-selected" : ""}
-                onClick={() => setSelectedMood(mood)}
+                className={
+                  selectedMood === mood
+                    ? "mood-selected"
+                    : ""
+                }
+                onClick={() =>
+                  setSelectedMood(mood)
+                }
               >
                 {mood}
               </button>
@@ -916,28 +1446,46 @@ function HealthModule() {
         <section className="breathing-card">
           <div
             className={`breathing-circle ${
-              breathing ? "breathing-circle-active" : ""
+              breathing
+                ? "breathing-circle-active"
+                : ""
             }`}
           >
-            <span>{breathing ? seconds : "30"}</span>
+            <span>
+              {breathing
+                ? seconds
+                : "30"}
+            </span>
+
             <small>segundos</small>
           </div>
 
           <div>
-            <span>PAUSA CONSCIENTE</span>
-            <h3>Ejercicio de respiración</h3>
+            <span>
+              PAUSA CONSCIENTE
+            </span>
+
+            <h3>
+              Ejercicio de respiración
+            </h3>
 
             <p>
-              Tómate treinta segundos para respirar lentamente y regresar al
-              momento presente.
+              Tómate treinta segundos para
+              respirar lentamente y regresar
+              al momento presente.
             </p>
 
             <button
+              type="button"
               className="button button-primary"
-              onClick={() => setBreathing(true)}
+              onClick={() =>
+                setBreathing(true)
+              }
               disabled={breathing}
             >
-              {breathing ? "Respira lentamente..." : "Comenzar ejercicio"}
+              {breathing
+                ? "Respira lentamente..."
+                : "Comenzar ejercicio"}
             </button>
           </div>
         </section>
@@ -947,11 +1495,16 @@ function HealthModule() {
         <Heart size={25} />
 
         <div>
-          <strong>Visiona es una herramienta de acompañamiento educativo</strong>
+          <strong>
+            Visiona es una herramienta de
+            acompañamiento educativo
+          </strong>
 
           <p>
-            Esta sección no realiza diagnósticos ni sustituye la atención de
-            profesionales de la salud mental.
+            Esta sección no realiza
+            diagnósticos ni sustituye la
+            atención de profesionales de
+            la salud mental.
           </p>
         </div>
       </section>
@@ -959,28 +1512,58 @@ function HealthModule() {
       <div className="habits-grid">
         <article>
           <span>💧</span>
+
           <h3>Hidratación</h3>
-          <strong>5 de 8 vasos</strong>
+
+          <strong>
+            {waterText}
+          </strong>
+
           <div className="progress-track">
-            <div className="progress-value progress-value-62" />
+            <div
+              className="progress-value"
+              style={{
+                width: `${waterProgress}%`,
+              }}
+            />
           </div>
         </article>
 
         <article>
           <span>🚶</span>
+
           <h3>Movimiento</h3>
-          <strong>4,250 pasos</strong>
+
+          <strong>
+            {stepsText}
+          </strong>
+
           <div className="progress-track">
-            <div className="progress-value progress-value-53" />
+            <div
+              className="progress-value"
+              style={{
+                width: `${stepsProgress}%`,
+              }}
+            />
           </div>
         </article>
 
         <article>
           <span>😴</span>
+
           <h3>Descanso</h3>
-          <strong>7 horas</strong>
+
+          <strong>
+            {sleepText}
+          </strong>
+
           <div className="progress-track">
-            <div className="progress-value progress-value-78" />
+            <div
+              className="progress-value"
+              style={{
+                width: `${sleepProgress}%`,
+              }}
+            />
           </div>
         </article>
       </div>
@@ -988,19 +1571,100 @@ function HealthModule() {
   );
 }
 
-function FutureModule() {
-  const [goal, setGoal] = useState("");
-  const [years, setYears] = useState("5");
-  const [generatedGoal, setGeneratedGoal] = useState("");
+/* =====================================================
+   MI FUTURO
+===================================================== */
 
-  function generateFuture(event: FormEvent<HTMLFormElement>): void {
+function FutureModule() {
+  const { user } = useAuth();
+
+  const [goal, setGoal] =
+    useState("");
+
+  const [years, setYears] =
+    useState("5");
+
+  const [
+    generatedGoal,
+    setGeneratedGoal,
+  ] = useState("");
+
+  const goalsStorageKey =
+    createUserStorageKey(
+      "visiona_goals",
+      user?.id,
+    );
+
+  /*
+    Cada usuario conserva su propia meta.
+  */
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    try {
+      const storedGoal =
+        localStorage.getItem(
+          goalsStorageKey,
+        );
+
+      if (!storedGoal) {
+        setGeneratedGoal("");
+        setGoal("");
+        setYears("5");
+
+        return;
+      }
+
+      const parsedGoal =
+        JSON.parse(storedGoal) as {
+          goal: string;
+          years: string;
+        };
+
+      setGeneratedGoal(
+        parsedGoal.goal,
+      );
+
+      setGoal(parsedGoal.goal);
+
+      setYears(
+        parsedGoal.years,
+      );
+    } catch {
+      setGeneratedGoal("");
+      setGoal("");
+      setYears("5");
+    }
+  }, [
+    goalsStorageKey,
+    user,
+  ]);
+
+  function generateFuture(
+    event: FormEvent<HTMLFormElement>,
+  ): void {
     event.preventDefault();
 
     if (!goal.trim()) {
       return;
     }
 
-    setGeneratedGoal(goal);
+    const normalizedGoal =
+      goal.trim();
+
+    setGeneratedGoal(
+      normalizedGoal,
+    );
+
+    localStorage.setItem(
+      goalsStorageKey,
+      JSON.stringify({
+        goal: normalizedGoal,
+        years,
+      }),
+    );
   }
 
   return (
@@ -1013,26 +1677,49 @@ function FutureModule() {
 
       <section className="future-builder">
         <form onSubmit={generateFuture}>
-          <span className="module-tag">SIMULADOR DE FUTURO</span>
-          <h3>¿Qué te gustaría lograr?</h3>
+          <span className="module-tag">
+            SIMULADOR DE FUTURO
+          </span>
+
+          <h3>
+            ¿Qué te gustaría lograr?
+          </h3>
 
           <textarea
             placeholder="Ejemplo: quiero tener mi propia cafetería, conseguir un empleo como desarrollador..."
             value={goal}
-            onChange={(event) => setGoal(event.target.value)}
+            onChange={(event) =>
+              setGoal(event.target.value)
+            }
           />
 
           <label>
-            Quiero lograrlo aproximadamente en
+            Quiero lograrlo aproximadamente
+            en
 
             <select
               value={years}
-              onChange={(event) => setYears(event.target.value)}
+              onChange={(event) =>
+                setYears(
+                  event.target.value,
+                )
+              }
             >
-              <option value="1">1 año</option>
-              <option value="3">3 años</option>
-              <option value="5">5 años</option>
-              <option value="10">10 años</option>
+              <option value="1">
+                1 año
+              </option>
+
+              <option value="3">
+                3 años
+              </option>
+
+              <option value="5">
+                5 años
+              </option>
+
+              <option value="10">
+                10 años
+              </option>
             </select>
           </label>
 
@@ -1044,9 +1731,15 @@ function FutureModule() {
 
         <div className="future-builder-visual">
           <Target size={76} />
-          <h3>Tu visión, convertida en acciones</h3>
+
+          <h3>
+            Tu visión, convertida en
+            acciones
+          </h3>
+
           <p>
-            Visiona divide tu objetivo en conocimientos, recursos y pasos
+            Visiona divide tu objetivo en
+            conocimientos, recursos y pasos
             progresivos.
           </p>
         </div>
@@ -1056,51 +1749,79 @@ function FutureModule() {
         <section className="roadmap-section">
           <div className="dashboard-panel-heading">
             <div>
-              <span>RUTA GENERADA PARA {years} AÑOS</span>
-              <h3>{generatedGoal}</h3>
+              <span>
+                RUTA GENERADA PARA{" "}
+                {years} AÑOS
+              </span>
+
+              <h3>
+                {generatedGoal}
+              </h3>
             </div>
           </div>
 
           <div className="roadmap-list">
             <article>
               <small>ETAPA 1</small>
+
               <div>
-                <strong>Explorar y definir</strong>
+                <strong>
+                  Explorar y definir
+                </strong>
+
                 <p>
-                  Investiga el área, identifica recursos y establece un
-                  resultado concreto.
+                  Investiga el área,
+                  identifica recursos y
+                  establece un resultado
+                  concreto.
                 </p>
               </div>
             </article>
 
             <article>
               <small>ETAPA 2</small>
+
               <div>
-                <strong>Aprender y prepararte</strong>
+                <strong>
+                  Aprender y prepararte
+                </strong>
+
                 <p>
-                  Desarrolla habilidades esenciales mediante cursos, práctica y
-                  proyectos.
+                  Desarrolla habilidades
+                  esenciales mediante cursos,
+                  práctica y proyectos.
                 </p>
               </div>
             </article>
 
             <article>
               <small>ETAPA 3</small>
+
               <div>
-                <strong>Crear experiencia</strong>
+                <strong>
+                  Crear experiencia
+                </strong>
+
                 <p>
-                  Construye evidencias de tu trabajo, recibe retroalimentación y
-                  mejora.
+                  Construye evidencias de tu
+                  trabajo, recibe
+                  retroalimentación y mejora.
                 </p>
               </div>
             </article>
 
             <article>
               <small>ETAPA 4</small>
+
               <div>
-                <strong>Ejecutar y medir</strong>
+                <strong>
+                  Ejecutar y medir
+                </strong>
+
                 <p>
-                  Pon en marcha tu proyecto y evalúa los resultados obtenidos.
+                  Pon en marcha tu proyecto y
+                  evalúa los resultados
+                  obtenidos.
                 </p>
               </div>
             </article>
@@ -1111,32 +1832,64 @@ function FutureModule() {
   );
 }
 
+/* =====================================================
+   COMUNIDAD
+===================================================== */
+
 function CommunityModule() {
-  const [likes, setLikes] = useState([24, 17, 31]);
-  const [newPost, setNewPost] = useState("");
-  const [posts, setPosts] = useState([
-    {
-      author: "Mariana",
-      role: "Estudiante de diseño",
-      content:
-        "Estoy creando un proyecto para ayudar a pequeños negocios a mejorar su identidad visual. ¿Alguien quiere colaborar?",
-      time: "Hace 20 min",
-    },
-    {
-      author: "Luis",
-      role: "Desarrollador junior",
-      content:
-        "Terminé mi primer portafolio de desarrollo web. Visiona me ayudó a ordenar mis proyectos y habilidades.",
-      time: "Hace 1 hora",
-    },
-    {
-      author: "Andrea",
-      role: "Emprendedora",
-      content:
-        "Busco una persona que sepa de redes sociales para colaborar en una idea de productos sustentables.",
-      time: "Hace 3 horas",
-    },
-  ]);
+  const { user } = useAuth();
+
+  const [likes, setLikes] =
+    useState([
+      24,
+      17,
+      31,
+    ]);
+
+  const [newPost, setNewPost] =
+    useState("");
+
+  /*
+    Estas publicaciones son públicas
+    de la comunidad, no son datos privados
+    de la cuenta de Gael.
+  */
+  const [posts, setPosts] =
+    useState([
+      {
+        author: "Mariana",
+        role: "Estudiante de diseño",
+        content:
+          "Estoy creando un proyecto para ayudar a pequeños negocios a mejorar su identidad visual. ¿Alguien quiere colaborar?",
+        time: "Hace 20 min",
+      },
+      {
+        author: "Luis",
+        role: "Desarrollador junior",
+        content:
+          "Terminé mi primer portafolio de desarrollo web. Visiona me ayudó a ordenar mis proyectos y habilidades.",
+        time: "Hace 1 hora",
+      },
+      {
+        author: "Andrea",
+        role: "Emprendedora",
+        content:
+          "Busco una persona que sepa de redes sociales para colaborar en una idea de productos sustentables.",
+        time: "Hace 3 horas",
+      },
+    ]);
+
+  const currentUserName =
+    user?.name?.trim() ||
+    "Usuario Visiona";
+
+  const currentFirstName =
+    currentUserName.split(" ")[0];
+
+  const currentInitial =
+    currentFirstName
+      .charAt(0)
+      .toUpperCase() || "V";
 
   function publishPost(): void {
     if (!newPost.trim()) {
@@ -1145,22 +1898,34 @@ function CommunityModule() {
 
     setPosts((current) => [
       {
-        author: "Gael",
+        author: currentFirstName,
         role: "Explorador Visiona",
-        content: newPost,
+        content: newPost.trim(),
         time: "Ahora",
       },
       ...current,
     ]);
 
-    setLikes((current) => [0, ...current]);
+    setLikes((current) => [
+      0,
+      ...current,
+    ]);
+
     setNewPost("");
   }
 
-  function likePost(index: number): void {
+  function likePost(
+    index: number,
+  ): void {
     setLikes((current) =>
-      current.map((likesAmount, currentIndex) =>
-        currentIndex === index ? likesAmount + 1 : likesAmount,
+      current.map(
+        (
+          likesAmount,
+          currentIndex,
+        ) =>
+          currentIndex === index
+            ? likesAmount + 1
+            : likesAmount,
       ),
     );
   }
@@ -1176,71 +1941,116 @@ function CommunityModule() {
       <div className="community-layout">
         <section className="community-feed">
           <div className="create-post-card">
-            <div className="community-avatar">G</div>
+            <div className="community-avatar">
+              {currentInitial}
+            </div>
 
             <textarea
               placeholder="Comparte una idea, avance o proyecto..."
               value={newPost}
-              onChange={(event) => setNewPost(event.target.value)}
+              onChange={(event) =>
+                setNewPost(
+                  event.target.value,
+                )
+              }
             />
 
-            <button onClick={publishPost} aria-label="Publicar">
+            <button
+              type="button"
+              onClick={publishPost}
+              aria-label="Publicar"
+            >
               <Send size={19} />
             </button>
           </div>
 
-          {posts.map((post, index) => (
-            <article
-              className="community-post"
-              key={`${post.author}-${post.time}-${index}`}
-            >
-              <div className="community-post-header">
-                <div className="community-avatar">
-                  {post.author.charAt(0)}
+          {posts.map(
+            (post, index) => (
+              <article
+                className="community-post"
+                key={`${post.author}-${post.time}-${index}`}
+              >
+                <div className="community-post-header">
+                  <div className="community-avatar">
+                    {post.author
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {post.author}
+                    </strong>
+
+                    <span>
+                      {post.role}
+                    </span>
+                  </div>
+
+                  <time>
+                    {post.time}
+                  </time>
                 </div>
 
-                <div>
-                  <strong>{post.author}</strong>
-                  <span>{post.role}</span>
+                <p>{post.content}</p>
+
+                <div className="community-post-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      likePost(index)
+                    }
+                  >
+                    <ThumbsUp size={18} />
+                    {likes[index] ?? 0}
+                  </button>
+
+                  <button type="button">
+                    <MessageCircle
+                      size={18}
+                    />
+                    Comentar
+                  </button>
                 </div>
-
-                <time>{post.time}</time>
-              </div>
-
-              <p>{post.content}</p>
-
-              <div className="community-post-actions">
-                <button onClick={() => likePost(index)}>
-                  <ThumbsUp size={18} />
-                  {likes[index] ?? 0}
-                </button>
-
-                <button>
-                  <MessageCircle size={18} />
-                  Comentar
-                </button>
-              </div>
-            </article>
-          ))}
+              </article>
+            ),
+          )}
         </section>
 
         <aside className="community-sidebar">
           <section>
             <div className="community-sidebar-heading">
               <Users size={20} />
-              <strong>Personas sugeridas</strong>
+
+              <strong>
+                Personas sugeridas
+              </strong>
             </div>
 
-            {["Diana", "Emilio", "Fernanda"].map((person) => (
-              <div className="suggested-person" key={person}>
-                <div className="community-avatar">{person.charAt(0)}</div>
-
-                <div>
-                  <strong>{person}</strong>
-                  <span>Intereses compatibles</span>
+            {[
+              "Diana",
+              "Emilio",
+              "Fernanda",
+            ].map((person) => (
+              <div
+                className="suggested-person"
+                key={person}
+              >
+                <div className="community-avatar">
+                  {person.charAt(0)}
                 </div>
 
-                <button>
+                <div>
+                  <strong>
+                    {person}
+                  </strong>
+
+                  <span>
+                    Intereses compatibles
+                  </span>
+                </div>
+
+                <button type="button">
                   <Plus size={18} />
                 </button>
               </div>
@@ -1249,9 +2059,22 @@ function CommunityModule() {
 
           <section className="community-project-card">
             <Rocket size={26} />
-            <h3>¿Tienes un proyecto?</h3>
-            <p>Publícalo para encontrar colaboradores y recibir ideas.</p>
-            <button className="button button-secondary">Crear proyecto</button>
+
+            <h3>
+              ¿Tienes un proyecto?
+            </h3>
+
+            <p>
+              Publícalo para encontrar
+              colaboradores y recibir ideas.
+            </p>
+
+            <button
+              type="button"
+              className="button button-secondary"
+            >
+              Crear proyecto
+            </button>
           </section>
         </aside>
       </div>
@@ -1259,61 +2082,161 @@ function CommunityModule() {
   );
 }
 
+/* =====================================================
+   SOLICITUDES
+===================================================== */
+
 function RequestsModule() {
-  const [requests, setRequests] = useState<VisionRequest[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [requestTitle, setRequestTitle] = useState("");
-  const [requestType, setRequestType] = useState("Orientación");
-  const [requestDescription, setRequestDescription] = useState("");
+  const { user } = useAuth();
 
-  useEffect(() => {
-    try {
-      const storedRequests = localStorage.getItem("visiona_requests");
+  const [
+    requests,
+    setRequests,
+  ] = useState<VisionRequest[]>([]);
 
-      if (storedRequests) {
-        setRequests(JSON.parse(storedRequests) as VisionRequest[]);
-      } else {
-        setRequests(initialRequests);
-        localStorage.setItem(
-          "visiona_requests",
-          JSON.stringify(initialRequests),
-        );
-      }
-    } catch {
-      setRequests(initialRequests);
-    }
-  }, []);
+  const [
+    showForm,
+    setShowForm,
+  ] = useState(false);
 
-  function saveRequests(updatedRequests: VisionRequest[]): void {
-    setRequests(updatedRequests);
-    localStorage.setItem(
+  const [
+    requestTitle,
+    setRequestTitle,
+  ] = useState("");
+
+  const [
+    requestType,
+    setRequestType,
+  ] = useState("Orientación");
+
+  const [
+    requestDescription,
+    setRequestDescription,
+  ] = useState("");
+
+  /*
+    Cada cuenta utiliza una clave diferente.
+
+    Ejemplo:
+
+    Gael:
+    visiona_requests_gael-demo
+
+    Marlen:
+    visiona_requests_user-123456
+  */
+  const requestsStorageKey =
+    createUserStorageKey(
       "visiona_requests",
-      JSON.stringify(updatedRequests),
+      user?.id,
     );
-  }
 
-  function createRequest(event: FormEvent<HTMLFormElement>): void {
-    event.preventDefault();
+  /*
+    Gael recibe las solicitudes de demostración.
 
-    if (!requestTitle.trim() || !requestDescription.trim()) {
+    Marlen y cualquier usuario nuevo
+    reciben un arreglo vacío.
+  */
+  useEffect(() => {
+    if (!user) {
       return;
     }
 
-    const today = new Date().toLocaleDateString("es-MX");
+    try {
+      const storedRequests =
+        localStorage.getItem(
+          requestsStorageKey,
+        );
+
+      if (storedRequests) {
+        setRequests(
+          JSON.parse(
+            storedRequests,
+          ) as VisionRequest[],
+        );
+
+        return;
+      }
+
+      const accountRequests =
+        isGaelAccount(user.id)
+          ? initialGaelRequests
+          : [];
+
+      setRequests(accountRequests);
+
+      localStorage.setItem(
+        requestsStorageKey,
+        JSON.stringify(
+          accountRequests,
+        ),
+      );
+    } catch {
+      setRequests([]);
+    }
+  }, [
+    requestsStorageKey,
+    user,
+  ]);
+
+  function saveRequests(
+    updatedRequests: VisionRequest[],
+  ): void {
+    setRequests(updatedRequests);
+
+    localStorage.setItem(
+      requestsStorageKey,
+      JSON.stringify(
+        updatedRequests,
+      ),
+    );
+  }
+
+  function createRequest(
+    event: FormEvent<HTMLFormElement>,
+  ): void {
+    event.preventDefault();
+
+    if (
+      !requestTitle.trim() ||
+      !requestDescription.trim()
+    ) {
+      return;
+    }
+
+    const today =
+      new Date().toLocaleDateString(
+        "es-MX",
+      );
 
     const newRequest: VisionRequest = {
-      id: `SOL-${Math.floor(2500 + Math.random() * 500)}`,
-      title: requestTitle,
+      id: `SOL-${Math.floor(
+        2500 +
+          Math.random() * 500,
+      )}`,
+
+      title:
+        requestTitle.trim(),
+
       type: requestType,
-      description: requestDescription,
+
+      description:
+        requestDescription.trim(),
+
       status: "RECIBIDA",
-      responsible: "Pendiente de asignación",
+
+      responsible:
+        "Pendiente de asignación",
+
       createdAt: today,
       updatedAt: today,
       progress: 10,
     };
 
-    saveRequests([newRequest, ...requests]);
+    saveRequests([
+      newRequest,
+      ...requests,
+    ]);
 
     setRequestTitle("");
     setRequestDescription("");
@@ -1321,33 +2244,57 @@ function RequestsModule() {
     setShowForm(false);
   }
 
-  function advanceRequest(requestId: string): void {
-    const updatedRequests = requests.map((request) => {
-      if (request.id !== requestId) {
-        return request;
-      }
+  function advanceRequest(
+    requestId: string,
+  ): void {
+    const updatedRequests =
+      requests.map((request) => {
+        if (
+          request.id !== requestId
+        ) {
+          return request;
+        }
 
-      const currentIndex = requestStatusOrder.indexOf(request.status);
+        const currentIndex =
+          requestStatusOrder.indexOf(
+            request.status,
+          );
 
-      if (currentIndex >= requestStatusOrder.length - 1) {
-        return request;
-      }
+        if (
+          currentIndex >=
+          requestStatusOrder.length - 1
+        ) {
+          return request;
+        }
 
-      const nextStatus = requestStatusOrder[currentIndex + 1];
+        const nextStatus =
+          requestStatusOrder[
+            currentIndex + 1
+          ];
 
-      return {
-        ...request,
-        status: nextStatus,
-        updatedAt: new Date().toLocaleDateString("es-MX"),
-        progress: Math.round(
-          ((currentIndex + 2) / requestStatusOrder.length) * 100,
-        ),
-        responsible:
-          request.responsible === "Pendiente de asignación"
-            ? "Mariana Torres"
-            : request.responsible,
-      };
-    });
+        return {
+          ...request,
+
+          status: nextStatus,
+
+          updatedAt:
+            new Date().toLocaleDateString(
+              "es-MX",
+            ),
+
+          progress: Math.round(
+            ((currentIndex + 2) /
+              requestStatusOrder.length) *
+              100,
+          ),
+
+          responsible:
+            request.responsible ===
+            "Pendiente de asignación"
+              ? "Mariana Torres"
+              : request.responsible,
+        };
+      });
 
     saveRequests(updatedRequests);
   }
@@ -1362,8 +2309,13 @@ function RequestsModule() {
         />
 
         <button
+          type="button"
           className="button button-primary"
-          onClick={() => setShowForm((current) => !current)}
+          onClick={() =>
+            setShowForm(
+              (current) => !current,
+            )
+          }
         >
           <Plus size={19} />
           Nueva solicitud
@@ -1371,14 +2323,27 @@ function RequestsModule() {
       </div>
 
       {showForm && (
-        <form className="request-form" onSubmit={createRequest}>
+        <form
+          className="request-form"
+          onSubmit={createRequest}
+        >
           <div className="request-form-heading">
             <div>
-              <span>NUEVA SOLICITUD</span>
-              <h3>¿En qué necesitas apoyo?</h3>
+              <span>
+                NUEVA SOLICITUD
+              </span>
+
+              <h3>
+                ¿En qué necesitas apoyo?
+              </h3>
             </div>
 
-            <button type="button" onClick={() => setShowForm(false)}>
+            <button
+              type="button"
+              onClick={() =>
+                setShowForm(false)
+              }
+            >
               Cerrar
             </button>
           </div>
@@ -1386,38 +2351,70 @@ function RequestsModule() {
           <div className="request-form-grid">
             <label>
               Título
+
               <input
                 placeholder="Ejemplo: orientación para buscar empleo"
                 value={requestTitle}
-                onChange={(event) => setRequestTitle(event.target.value)}
+                onChange={(event) =>
+                  setRequestTitle(
+                    event.target.value,
+                  )
+                }
               />
             </label>
 
             <label>
               Tipo
+
               <select
                 value={requestType}
-                onChange={(event) => setRequestType(event.target.value)}
+                onChange={(event) =>
+                  setRequestType(
+                    event.target.value,
+                  )
+                }
               >
-                <option>Orientación</option>
-                <option>Empleo</option>
-                <option>Emprendimiento</option>
-                <option>Proyecto de vida</option>
-                <option>Colaboración</option>
+                <option>
+                  Orientación
+                </option>
+
+                <option>
+                  Empleo
+                </option>
+
+                <option>
+                  Emprendimiento
+                </option>
+
+                <option>
+                  Proyecto de vida
+                </option>
+
+                <option>
+                  Colaboración
+                </option>
               </select>
             </label>
           </div>
 
           <label>
             Descripción
+
             <textarea
               placeholder="Describe brevemente qué necesitas..."
               value={requestDescription}
-              onChange={(event) => setRequestDescription(event.target.value)}
+              onChange={(event) =>
+                setRequestDescription(
+                  event.target.value,
+                )
+              }
             />
           </label>
 
-          <button className="button button-primary" type="submit">
+          <button
+            className="button button-primary"
+            type="submit"
+          >
             <Send size={18} />
             Enviar solicitud
           </button>
@@ -1430,103 +2427,261 @@ function RequestsModule() {
         </div>
 
         <div>
-          <strong>¿Cómo funciona el seguimiento?</strong>
+          <strong>
+            ¿Cómo funciona el seguimiento?
+          </strong>
+
           <p>
-            Cada solicitud se registra, clasifica, revisa, aprueba y ejecuta
-            mediante un flujo de atención.
+            Cada solicitud se registra,
+            clasifica, revisa, aprueba y
+            ejecuta mediante un flujo de
+            atención.
           </p>
         </div>
       </section>
 
-      <div className="requests-list">
-        {requests.map((request) => (
-          <article className="request-card" key={request.id}>
-            <div className="request-card-header">
-              <div>
-                <span>{request.id}</span>
-                <h3>{request.title}</h3>
-              </div>
+      {requests.length === 0 ? (
+        <section
+          className="business-result"
+          style={{
+            minHeight: "330px",
+          }}
+        >
+          <div className="business-empty">
+            <ClipboardEmptyIcon />
 
-              <span
-                className={`request-status request-status-${request.status.toLowerCase()}`}
-              >
-                {requestStatusLabels[request.status]}
-              </span>
-            </div>
+            <h3>
+              Todavía no tienes solicitudes
+            </h3>
 
-            <p>{request.description}</p>
+            <p>
+              Tu cuenta comienza en cero.
+              Cuando necesites orientación,
+              empleo, apoyo para emprender
+              o colaboración, crea tu primera
+              solicitud.
+            </p>
 
-            <div className="request-information">
-              <div>
-                <span>Tipo</span>
-                <strong>{request.type}</strong>
-              </div>
+            <button
+              type="button"
+              className="button button-primary"
+              onClick={() =>
+                setShowForm(true)
+              }
+              style={{
+                marginTop: "20px",
+              }}
+            >
+              <Plus size={18} />
+              Crear mi primera solicitud
+            </button>
+          </div>
+        </section>
+      ) : (
+        <div className="requests-list">
+          {requests.map((request) => (
+            <article
+              className="request-card"
+              key={request.id}
+            >
+              <div className="request-card-header">
+                <div>
+                  <span>
+                    {request.id}
+                  </span>
 
-              <div>
-                <span>Responsable</span>
-                <strong>{request.responsible}</strong>
-              </div>
+                  <h3>
+                    {request.title}
+                  </h3>
+                </div>
 
-              <div>
-                <span>Creada</span>
-                <strong>{request.createdAt}</strong>
-              </div>
-
-              <div>
-                <span>Actualizada</span>
-                <strong>{request.updatedAt}</strong>
-              </div>
-            </div>
-
-            <div className="request-progress-header">
-              <span>Avance del proceso</span>
-              <strong>{request.progress}%</strong>
-            </div>
-
-            <div className="progress-track">
-              <div
-                className="progress-value"
-                style={{
-                  width: `${request.progress}%`,
-                }}
-              />
-            </div>
-
-            <div className="request-actions">
-              <button className="button button-secondary">
-                Ver seguimiento
-              </button>
-
-              {request.status !== "FINALIZADA" && (
-                <button
-                  className="request-demo-button"
-                  onClick={() => advanceRequest(request.id)}
+                <span
+                  className={`request-status request-status-${request.status.toLowerCase()}`}
                 >
-                  Simular siguiente estado
-                  <ArrowRight size={17} />
+                  {
+                    requestStatusLabels[
+                      request.status
+                    ]
+                  }
+                </span>
+              </div>
+
+              <p>
+                {request.description}
+              </p>
+
+              <div className="request-information">
+                <div>
+                  <span>Tipo</span>
+
+                  <strong>
+                    {request.type}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Responsable
+                  </span>
+
+                  <strong>
+                    {request.responsible}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Creada</span>
+
+                  <strong>
+                    {request.createdAt}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    Actualizada
+                  </span>
+
+                  <strong>
+                    {request.updatedAt}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="request-progress-header">
+                <span>
+                  Avance del proceso
+                </span>
+
+                <strong>
+                  {request.progress}%
+                </strong>
+              </div>
+
+              <div className="progress-track">
+                <div
+                  className="progress-value"
+                  style={{
+                    width: `${request.progress}%`,
+                  }}
+                />
+              </div>
+
+              <div className="request-actions">
+                <button
+                  type="button"
+                  className="button button-secondary"
+                >
+                  Ver seguimiento
                 </button>
-              )}
-            </div>
-          </article>
-        ))}
-      </div>
+
+                {request.status !==
+                  "FINALIZADA" && (
+                  <button
+                    type="button"
+                    className="request-demo-button"
+                    onClick={() =>
+                      advanceRequest(
+                        request.id,
+                      )
+                    }
+                  >
+                    Simular siguiente estado
+                    <ArrowRight size={17} />
+                  </button>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
+/*
+  Icono simple para el estado vacío de solicitudes.
+*/
+function ClipboardEmptyIcon() {
+  return (
+    <div
+      style={{
+        display: "grid",
+        width: "64px",
+        height: "64px",
+        margin: "0 auto",
+        placeItems: "center",
+        color: "#6b53d7",
+        background: "#eeeaff",
+        borderRadius: "18px",
+      }}
+    >
+      <BookOpen size={31} />
+    </div>
+  );
+}
+
+/* =====================================================
+   PERFIL
+===================================================== */
+
 function ProfileModule() {
-  const { user, updateUser } = useAuth();
+  const {
+    user,
+    updateUser,
+  } = useAuth();
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [headline, setHeadline] = useState(user?.headline ?? "");
-  const [saved, setSaved] = useState(false);
+  const [name, setName] =
+    useState(user?.name ?? "");
 
-  function saveProfile(event: FormEvent<HTMLFormElement>): void {
+  const [headline, setHeadline] =
+    useState(
+      user?.headline ?? "",
+    );
+
+  const [saved, setSaved] =
+    useState(false);
+
+  /*
+    Si cambia la sesión, actualizamos
+    los campos para mostrar los datos
+    del usuario correcto.
+  */
+  useEffect(() => {
+    setName(
+      user?.name ?? "",
+    );
+
+    setHeadline(
+      user?.headline ?? "",
+    );
+  }, [user]);
+
+  const accountIsGael =
+    isGaelAccount(user?.id);
+
+  const profileProgress =
+    accountIsGael ? 68 : 0;
+
+  const goalsAmount =
+    accountIsGael ? 7 : 0;
+
+  const coursesAmount =
+    accountIsGael ? 3 : 0;
+
+  const userInitial =
+    user?.name
+      ?.charAt(0)
+      .toUpperCase() || "V";
+
+  function saveProfile(
+    event: FormEvent<HTMLFormElement>,
+  ): void {
     event.preventDefault();
 
     updateUser({
-      name,
-      headline,
+      name: name.trim(),
+      headline: headline.trim(),
     });
 
     setSaved(true);
@@ -1547,73 +2702,141 @@ function ProfileModule() {
       <div className="profile-module-grid">
         <aside className="profile-summary-card">
           <div className="profile-large-avatar">
-            {user?.name.charAt(0).toUpperCase()}
+            {userInitial}
           </div>
 
-          <h3>{user?.name}</h3>
-          <span>{user?.headline}</span>
+          <h3>
+            {user?.name}
+          </h3>
+
+          <span>
+            {user?.headline}
+          </span>
 
           <div className="profile-level-badge">
             <Sparkles size={17} />
-            Nivel {user?.level} · {user?.points} puntos
+
+            Nivel {user?.level ?? 1} ·{" "}
+            {user?.points ?? 0} puntos
           </div>
 
           <div className="profile-summary-statistics">
             <div>
-              <strong>68%</strong>
+              <strong>
+                {profileProgress}%
+              </strong>
+
               <span>Perfil</span>
             </div>
 
             <div>
-              <strong>7</strong>
+              <strong>
+                {goalsAmount}
+              </strong>
+
               <span>Metas</span>
             </div>
 
             <div>
-              <strong>3</strong>
+              <strong>
+                {coursesAmount}
+              </strong>
+
               <span>Cursos</span>
             </div>
           </div>
         </aside>
 
-        <form className="profile-form" onSubmit={saveProfile}>
+        <form
+          className="profile-form"
+          onSubmit={saveProfile}
+        >
           <div className="profile-form-heading">
-            <CircleUserRound size={23} />
+            <CircleUserRound
+              size={23}
+            />
 
             <div>
-              <span>INFORMACIÓN PERSONAL</span>
-              <h3>Datos del perfil</h3>
+              <span>
+                INFORMACIÓN PERSONAL
+              </span>
+
+              <h3>
+                Datos del perfil
+              </h3>
             </div>
           </div>
 
           <label>
             Nombre
+
             <input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) =>
+                setName(
+                  event.target.value,
+                )
+              }
             />
           </label>
 
           <label>
             Correo electrónico
-            <input value={user?.email ?? ""} disabled />
+
+            <input
+              value={user?.email ?? ""}
+              disabled
+            />
+          </label>
+
+          <label>
+            Etapa actual
+
+            <input
+              value={
+                user?.stage ??
+                "Sin información"
+              }
+              disabled
+            />
+          </label>
+
+          <label>
+            Objetivo principal
+
+            <input
+              value={
+                user?.mainGoal ??
+                "Sin información"
+              }
+              disabled
+            />
           </label>
 
           <label>
             Descripción profesional
+
             <input
               value={headline}
-              onChange={(event) => setHeadline(event.target.value)}
+              onChange={(event) =>
+                setHeadline(
+                  event.target.value,
+                )
+              }
               placeholder="Ejemplo: estudiante de ingeniería..."
             />
           </label>
 
           <label>
             Acerca de mí
+
             <textarea placeholder="Cuéntanos sobre tus intereses, habilidades y objetivos..." />
           </label>
 
-          <button className="button button-primary" type="submit">
+          <button
+            className="button button-primary"
+            type="submit"
+          >
             {saved ? (
               <>
                 <Check size={18} />

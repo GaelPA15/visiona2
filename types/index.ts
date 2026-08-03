@@ -10,6 +10,11 @@ export interface VisionaUser {
   level: number;
   points: number;
   onboardingCompleted: boolean;
+
+  stage?: string;
+  mainGoal?: string;
+  interests?: string[];
+  createdAt?: string;
 }
 
 export type RequestStatus =

@@ -3,6 +3,7 @@
 import {
   ArrowLeft,
   ArrowRight,
+  CheckCircle2,
   Eye,
   EyeOff,
   LockKeyhole,
@@ -12,7 +13,12 @@ import {
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 
 import { useAuth } from "@/components/AuthProvider";
 import Logo from "@/components/Logo";
@@ -21,37 +27,81 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [message, setMessage] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [email, setEmail] =
+    useState("");
 
-  function handleDemoAccount(): void {
-    setEmail("gael@visiona.com");
-    setPassword("Visiona123");
-    setMessage("");
-  }
+  const [password, setPassword] =
+    useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
+
+  const [message, setMessage] =
+    useState("");
+
+  const [
+    registrationMessage,
+    setRegistrationMessage,
+  ] = useState(false);
+
+  const [
+    submitting,
+    setSubmitting,
+  ] = useState(false);
+
+  useEffect(() => {
+    const lastRegisteredEmail =
+      localStorage.getItem(
+        "visiona_last_registered_email",
+      );
+
+    if (lastRegisteredEmail) {
+      setEmail(lastRegisteredEmail);
+      setRegistrationMessage(true);
+    }
+  }, []);
+
+  function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): void {
     event.preventDefault();
+
     setMessage("");
 
-    if (!email.trim() || !password.trim()) {
-      setMessage("Completa tu correo y contraseña.");
+    if (
+      !email.trim() ||
+      !password.trim()
+    ) {
+      setMessage(
+        "Completa tu correo y contraseña.",
+      );
+
       return;
     }
 
     setSubmitting(true);
 
     window.setTimeout(() => {
-      const result = login(email, password);
+      const result = login(
+        email,
+        password,
+      );
 
       if (!result.success) {
-        setMessage(result.message ?? "No fue posible iniciar sesión.");
+        setMessage(
+          result.message ??
+            "No fue posible iniciar sesión.",
+        );
+
         setSubmitting(false);
         return;
       }
+
+      localStorage.removeItem(
+        "visiona_last_registered_email",
+      );
 
       router.push("/dashboard");
     }, 700);
@@ -71,29 +121,39 @@ export default function LoginPage() {
               Continúa construyendo
             </div>
 
-            <h1>Tu siguiente paso comienza donde lo dejaste.</h1>
+            <h1>
+              Tu siguiente paso comienza
+              donde lo dejaste.
+            </h1>
 
             <p>
-              Regresa a tus metas, descubre nuevas oportunidades y sigue
-              construyendo el futuro que imaginas.
+              Regresa a tus metas, descubre
+              nuevas oportunidades y sigue
+              construyendo el futuro que
+              imaginas.
             </p>
 
             <div className="auth-quote">
               <span>“</span>
-              No necesitas conocer todo el camino. Solo necesitas comenzar con
-              el siguiente paso.
+              No necesitas conocer todo el
+              camino. Solo necesitas comenzar
+              con el siguiente paso.
             </div>
           </div>
 
           <span className="auth-showcase-footer">
-            Visiona · Descubre quién quieres ser
+            Visiona · Descubre quién
+            quieres ser
           </span>
         </div>
       </section>
 
       <section className="auth-form-section">
         <div className="auth-form-wrapper">
-          <Link href="/" className="auth-back-link">
+          <Link
+            href="/"
+            className="auth-back-link"
+          >
             <ArrowLeft size={18} />
             Volver al inicio
           </Link>
@@ -103,41 +163,57 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-heading">
-            <span>Bienvenido de nuevo</span>
-            <h2>Inicia sesión en Visiona</h2>
-            <p>Continúa avanzando en tu ruta personal y profesional.</p>
+            <span>
+              Bienvenido de nuevo
+            </span>
+
+            <h2>
+              Inicia sesión en Visiona
+            </h2>
+
+            <p>
+              Continúa avanzando en tu
+              ruta personal y profesional.
+            </p>
           </div>
 
-          <button
-            type="button"
-            className="demo-account"
-            onClick={handleDemoAccount}
-          >
-            <div className="demo-account-avatar">G</div>
+          {registrationMessage && (
+            <div className="login-registration-success">
+              <CheckCircle2 size={20} />
 
-            <div>
-              <strong>Usar cuenta de demostración</strong>
-              <span>Entrar como Gael</span>
+              <div>
+                <strong>
+                  Tu cuenta fue creada
+                  correctamente
+                </strong>
+
+                <span>
+                  Escribe tu contraseña
+                  para iniciar sesión.
+                </span>
+              </div>
             </div>
+          )}
 
-            <ArrowRight size={20} />
-          </button>
-
-          <div className="auth-divider">
-            <span>o ingresa tus datos</span>
-          </div>
-
-          <form className="auth-form" onSubmit={handleSubmit}>
+          <form
+            className="auth-form login-form"
+            onSubmit={handleSubmit}
+          >
             <label>
               Correo electrónico
 
               <div className="auth-input-wrapper">
                 <Mail size={19} />
+
                 <input
                   type="email"
                   placeholder="nombre@correo.com"
                   value={email}
-                  onChange={(event) => setEmail(event.target.value)}
+                  onChange={(event) =>
+                    setEmail(
+                      event.target.value,
+                    )
+                  }
                   autoComplete="email"
                 />
               </div>
@@ -146,7 +222,11 @@ export default function LoginPage() {
             <label>
               <div className="label-row">
                 <span>Contraseña</span>
-                <button type="button" className="forgot-password">
+
+                <button
+                  type="button"
+                  className="forgot-password"
+                >
                   ¿La olvidaste?
                 </button>
               </div>
@@ -155,19 +235,34 @@ export default function LoginPage() {
                 <LockKeyhole size={19} />
 
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   placeholder="Escribe tu contraseña"
                   value={password}
-                  onChange={(event) => setPassword(event.target.value)}
+                  onChange={(event) =>
+                    setPassword(
+                      event.target.value,
+                    )
+                  }
                   autoComplete="current-password"
                 />
 
                 <button
                   type="button"
                   className="password-visibility"
-                  onClick={() => setShowPassword((current) => !current)}
+                  onClick={() =>
+                    setShowPassword(
+                      (current) =>
+                        !current,
+                    )
+                  }
                   aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    showPassword
+                      ? "Ocultar contraseña"
+                      : "Mostrar contraseña"
                   }
                 >
                   {showPassword ? (
@@ -179,29 +274,33 @@ export default function LoginPage() {
               </div>
             </label>
 
-            {message && <div className="auth-error">{message}</div>}
+            {message && (
+              <div className="auth-error">
+                {message}
+              </div>
+            )}
 
             <button
               type="submit"
               className="button button-primary auth-submit"
               disabled={submitting}
             >
-              {submitting ? "Ingresando..." : "Iniciar sesión"}
+              {submitting
+                ? "Ingresando..."
+                : "Iniciar sesión"}
 
-              {!submitting && <ArrowRight size={19} />}
+              {!submitting && (
+                <ArrowRight size={19} />
+              )}
             </button>
           </form>
 
           <p className="auth-switch">
             ¿Todavía no tienes una cuenta?{" "}
-            <Link href="/registro">Regístrate gratis</Link>
+            <Link href="/registro">
+              Regístrate gratis
+            </Link>
           </p>
-
-          <div className="demo-credentials">
-            <strong>Cuenta demo</strong>
-            <span>Correo: gael@visiona.com</span>
-            <span>Contraseña: Visiona123</span>
-          </div>
         </div>
       </section>
     </main>

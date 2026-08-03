@@ -20,7 +20,11 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
+
 import {
   useEffect,
   useMemo,
@@ -28,7 +32,10 @@ import {
   type ReactNode,
 } from "react";
 
-import { useAuth } from "@/components/AuthProvider";
+import {
+  useAuth,
+} from "@/components/AuthProvider";
+
 import Logo from "@/components/Logo";
 
 const navigationItems = [
@@ -81,15 +88,24 @@ const navigationItems = [
 
 const routeTitles: Record<string, string> = {
   "/dashboard": "Resumen",
-  "/dashboard/descubre": "Descubre tu camino",
-  "/dashboard/empleos": "Oportunidades laborales",
-  "/dashboard/negocios": "Ideas y emprendimiento",
-  "/dashboard/aprendizaje": "Aprendizaje",
-  "/dashboard/salud": "Salud y bienestar",
-  "/dashboard/futuro": "Mi proyecto de vida",
-  "/dashboard/comunidad": "Comunidad",
-  "/dashboard/solicitudes": "Mis solicitudes",
-  "/dashboard/perfil": "Mi perfil",
+  "/dashboard/descubre":
+    "Descubre tu camino",
+  "/dashboard/empleos":
+    "Oportunidades laborales",
+  "/dashboard/negocios":
+    "Ideas y emprendimiento",
+  "/dashboard/aprendizaje":
+    "Aprendizaje",
+  "/dashboard/salud":
+    "Salud y bienestar",
+  "/dashboard/futuro":
+    "Mi proyecto de vida",
+  "/dashboard/comunidad":
+    "Comunidad",
+  "/dashboard/solicitudes":
+    "Mis solicitudes",
+  "/dashboard/perfil":
+    "Mi perfil",
 };
 
 export default function DashboardShell({
@@ -99,16 +115,34 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const {
+    user,
+    loading,
+    logout,
+  } = useAuth();
+
+  const [
+    sidebarOpen,
+    setSidebarOpen,
+  ] = useState(false);
+
+  const [
+    profileOpen,
+    setProfileOpen,
+  ] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace("/iniciar-sesion");
+      router.replace(
+        "/iniciar-sesion",
+      );
     }
-  }, [loading, user, router]);
+  }, [
+    loading,
+    user,
+    router,
+  ]);
 
   useEffect(() => {
     setSidebarOpen(false);
@@ -116,7 +150,9 @@ export default function DashboardShell({
   }, [pathname]);
 
   const currentTitle = useMemo(
-    () => routeTitles[pathname] ?? "Visiona",
+    () =>
+      routeTitles[pathname] ??
+      "Visiona",
     [pathname],
   );
 
@@ -129,27 +165,44 @@ export default function DashboardShell({
     return (
       <main className="dashboard-loader">
         <Logo />
+
         <div className="loader-ring" />
-        <p>Preparando tu espacio...</p>
+
+        <p>
+          Preparando tu espacio...
+        </p>
       </main>
     );
   }
 
-  const firstName = user.name.split(" ")[0];
+  const firstName =
+    user.name.split(" ")[0];
+
+  /*
+    Solamente la cuenta de Gael
+    tiene dos solicitudes iniciales.
+  */
+  const accountIsGael =
+    user.id === "gael-demo";
 
   return (
     <div className="dashboard-shell">
       <aside
         className={`dashboard-sidebar ${
-          sidebarOpen ? "dashboard-sidebar-open" : ""
+          sidebarOpen
+            ? "dashboard-sidebar-open"
+            : ""
         }`}
       >
         <div className="sidebar-header">
           <Logo light />
 
           <button
+            type="button"
             className="sidebar-close"
-            onClick={() => setSidebarOpen(false)}
+            onClick={() =>
+              setSidebarOpen(false)
+            }
             aria-label="Cerrar menú"
           >
             <X size={22} />
@@ -158,52 +211,98 @@ export default function DashboardShell({
 
         <div className="sidebar-profile">
           <div className="sidebar-profile-avatar">
-            {firstName.charAt(0).toUpperCase()}
+            {firstName
+              .charAt(0)
+              .toUpperCase()}
           </div>
 
           <div>
-            <strong>{firstName}</strong>
-            <span>Nivel {user.level} · Explorador</span>
+            <strong>
+              {firstName}
+            </strong>
+
+            <span>
+              Nivel {user.level} ·
+              Explorador
+            </span>
           </div>
         </div>
 
         <div className="sidebar-level">
           <div>
-            <span>Tu siguiente nivel</span>
-            <strong>{user.points} pts</strong>
+            <span>
+              Tu siguiente nivel
+            </span>
+
+            <strong>
+              {user.points} pts
+            </strong>
           </div>
 
           <div className="sidebar-level-track">
-            <span />
+            <span
+              style={{
+                width: accountIsGael
+                  ? "62%"
+                  : "0%",
+              }}
+            />
           </div>
         </div>
 
         <nav className="sidebar-navigation">
-          <span className="sidebar-section-label">TU ESPACIO</span>
+          <span className="sidebar-section-label">
+            TU ESPACIO
+          </span>
 
-          {navigationItems.map((navigationItem) => {
-            const Icon = navigationItem.icon;
+          {navigationItems.map(
+            (navigationItem) => {
+              const Icon =
+                navigationItem.icon;
 
-            const isActive =
-              navigationItem.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(navigationItem.href);
+              const isActive =
+                navigationItem.href ===
+                "/dashboard"
+                  ? pathname ===
+                    "/dashboard"
+                  : pathname.startsWith(
+                      navigationItem.href,
+                    );
 
-            return (
-              <Link
-                href={navigationItem.href}
-                key={navigationItem.href}
-                className={isActive ? "sidebar-link-active" : ""}
-              >
-                <Icon size={20} />
-                <span>{navigationItem.label}</span>
+              const showRequestsBadge =
+                navigationItem.href ===
+                  "/dashboard/solicitudes" &&
+                accountIsGael;
 
-                {navigationItem.label === "Solicitudes" && (
-                  <small>2</small>
-                )}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  href={
+                    navigationItem.href
+                  }
+                  key={
+                    navigationItem.href
+                  }
+                  className={
+                    isActive
+                      ? "sidebar-link-active"
+                      : ""
+                  }
+                >
+                  <Icon size={20} />
+
+                  <span>
+                    {
+                      navigationItem.label
+                    }
+                  </span>
+
+                  {showRequestsBadge && (
+                    <small>2</small>
+                  )}
+                </Link>
+              );
+            },
+          )}
         </nav>
 
         <div className="sidebar-bottom">
@@ -212,11 +311,22 @@ export default function DashboardShell({
               <Lightbulb size={18} />
             </div>
 
-            <strong>Consejo del día</strong>
-            <p>Los avances pequeños también construyen grandes cambios.</p>
+            <strong>
+              Consejo del día
+            </strong>
+
+            <p>
+              Los avances pequeños
+              también construyen grandes
+              cambios.
+            </p>
           </div>
 
-          <button className="sidebar-logout" onClick={handleLogout}>
+          <button
+            type="button"
+            className="sidebar-logout"
+            onClick={handleLogout}
+          >
             <LogOut size={19} />
             Cerrar sesión
           </button>
@@ -225,8 +335,11 @@ export default function DashboardShell({
 
       {sidebarOpen && (
         <button
+          type="button"
           className="dashboard-overlay"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() =>
+            setSidebarOpen(false)
+          }
           aria-label="Cerrar menú"
         />
       )}
@@ -235,8 +348,11 @@ export default function DashboardShell({
         <header className="dashboard-header">
           <div className="dashboard-header-left">
             <button
+              type="button"
               className="dashboard-menu-button"
-              onClick={() => setSidebarOpen(true)}
+              onClick={() =>
+                setSidebarOpen(true)
+              }
               aria-label="Abrir menú"
             >
               <Menu size={22} />
@@ -244,47 +360,86 @@ export default function DashboardShell({
 
             <div>
               <span>VISIONA</span>
-              <h1>{currentTitle}</h1>
+
+              <h1>
+                {currentTitle}
+              </h1>
             </div>
           </div>
 
           <div className="dashboard-header-actions">
             <div className="dashboard-search">
               <Search size={18} />
-              <input placeholder="Buscar en Visiona..." />
+
+              <input
+                type="search"
+                placeholder="Buscar en Visiona..."
+              />
             </div>
 
-            <button className="dashboard-icon-button" aria-label="Notificaciones">
+            <button
+              type="button"
+              className="dashboard-icon-button"
+              aria-label="Notificaciones"
+            >
               <Bell size={20} />
-              <span className="notification-dot" />
+
+              {accountIsGael && (
+                <span className="notification-dot" />
+              )}
             </button>
 
             <div className="dashboard-profile-menu">
               <button
+                type="button"
                 className="dashboard-profile-button"
-                onClick={() => setProfileOpen((current) => !current)}
+                onClick={() =>
+                  setProfileOpen(
+                    (current) =>
+                      !current,
+                  )
+                }
               >
                 <div className="dashboard-profile-avatar">
-                  {firstName.charAt(0).toUpperCase()}
+                  {firstName
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
 
                 <div>
-                  <strong>{firstName}</strong>
-                  <span>{user.role.toLowerCase()}</span>
+                  <strong>
+                    {firstName}
+                  </strong>
+
+                  <span>
+                    {user.role
+                      .toLowerCase()}
+                  </span>
                 </div>
 
-                <ChevronDown size={17} />
+                <ChevronDown
+                  size={17}
+                />
               </button>
 
               {profileOpen && (
                 <div className="profile-dropdown">
                   <Link href="/dashboard/perfil">
-                    <UserRound size={18} />
+                    <UserRound
+                      size={18}
+                    />
+
                     Mi perfil
                   </Link>
 
-                  <button onClick={handleLogout}>
+                  <button
+                    type="button"
+                    onClick={
+                      handleLogout
+                    }
+                  >
                     <LogOut size={18} />
+
                     Cerrar sesión
                   </button>
                 </div>
@@ -293,7 +448,9 @@ export default function DashboardShell({
           </div>
         </header>
 
-        <div className="dashboard-content">{children}</div>
+        <div className="dashboard-content">
+          {children}
+        </div>
       </section>
     </div>
   );
