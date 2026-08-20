@@ -20,6 +20,52 @@ import {
 
 import Logo from "@/components/Logo";
 
+const INSTAGRAM_URL = "https://www.instagram.com/visiona_mx";
+
+function InstagramIcon({
+  size = 18,
+}: {
+  size?: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect
+        width="20"
+        height="20"
+        x="2"
+        y="2"
+        rx="5"
+        ry="5"
+      />
+
+      <circle
+        cx="12"
+        cy="12"
+        r="4"
+      />
+
+      <circle
+        cx="17.5"
+        cy="6.5"
+        r="0.5"
+        fill="currentColor"
+        stroke="none"
+      />
+    </svg>
+  );
+}
+
+
 const features = [
   {
     icon: Compass,
@@ -145,6 +191,20 @@ export default function HomePage() {
                   <Play size={16} fill="currentColor" />
                 </span>
                 Conocer Visiona
+              </a>
+            </div>
+
+            <div className="hero-social-follow">
+              <span>Síguenos en nuestras redes sociales</span>
+
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Seguir a Visiona en Instagram"
+              >
+                <InstagramIcon size={18} />
+                Instagram
               </a>
             </div>
 
@@ -414,6 +474,17 @@ export default function HomePage() {
             <a href="#como-funciona">Cómo funciona</a>
             <Link href="/iniciar-sesion">Iniciar sesión</Link>
             <Link href="/registro">Crear cuenta</Link>
+
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-instagram-link"
+              aria-label="Seguir a Visiona en Instagram"
+            >
+              <InstagramIcon size={16} />
+              Instagram
+            </a>
           </div>
         </div>
 

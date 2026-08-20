@@ -7260,3 +7260,61 @@ h4,
     padding: 14px;
   }
 }
+/* =====================================================
+   INSTAGRAM - LANDING PAGE VISIONA
+   Pegar al final de app/globals.css
+===================================================== */
+
+.hero-social-follow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.hero-social-follow > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #807b8d;
+}
+
+.hero-social-follow > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #5f49ca;
+  text-decoration: none;
+  background: #f4f0ff;
+  border: 1px solid #e1d9ff;
+  border-radius: 999px;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.hero-social-follow > a:hover {
+  transform: translateY(-1px);
+  background: #eee9ff;
+  border-color: #d2c6ff;
+}
+
+.footer-instagram-link {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-top: 6px;
+}
+
+@media (max-width: 650px) {
+  .hero-social-follow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
