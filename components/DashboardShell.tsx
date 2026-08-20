@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ClipboardCheck,
   Compass,
+  Crown,
   HeartPulse,
   Home,
   Lightbulb,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
+
 import {
   usePathname,
   useRouter,
@@ -37,6 +39,10 @@ import {
 } from "@/components/AuthProvider";
 
 import Logo from "@/components/Logo";
+
+/* =====================================================
+   NAVEGACIÓN
+===================================================== */
 
 const navigationItems = [
   {
@@ -64,6 +70,16 @@ const navigationItems = [
     label: "Aprendizaje",
     icon: BookOpen,
   },
+
+  /*
+    NUEVO APARTADO PREMIUM
+  */
+  {
+    href: "/dashboard/premium",
+    label: "Visiona Premium",
+    icon: Crown,
+  },
+
   {
     href: "/dashboard/salud",
     label: "Salud y bienestar",
@@ -86,35 +102,62 @@ const navigationItems = [
   },
 ];
 
+/* =====================================================
+   TÍTULOS DE LAS RUTAS
+===================================================== */
+
 const routeTitles: Record<string, string> = {
-  "/dashboard": "Resumen",
+  "/dashboard":
+    "Resumen",
+
   "/dashboard/descubre":
     "Descubre tu camino",
+
   "/dashboard/empleos":
     "Oportunidades laborales",
+
   "/dashboard/negocios":
     "Ideas y emprendimiento",
+
   "/dashboard/aprendizaje":
     "Aprendizaje",
+
+  /*
+    NUEVA RUTA PREMIUM
+  */
+  "/dashboard/premium":
+    "Visiona Premium",
+
   "/dashboard/salud":
     "Salud y bienestar",
+
   "/dashboard/futuro":
     "Mi proyecto de vida",
+
   "/dashboard/comunidad":
     "Comunidad",
+
   "/dashboard/solicitudes":
     "Mis solicitudes",
+
   "/dashboard/perfil":
     "Mi perfil",
 };
+
+/* =====================================================
+   DASHBOARD SHELL
+===================================================== */
 
 export default function DashboardShell({
   children,
 }: {
   children: ReactNode;
 }) {
-  const pathname = usePathname();
-  const router = useRouter();
+  const pathname =
+    usePathname();
+
+  const router =
+    useRouter();
 
   const {
     user,
@@ -132,6 +175,10 @@ export default function DashboardShell({
     setProfileOpen,
   ] = useState(false);
 
+  /*
+    Si no existe una sesión,
+    regresamos al inicio de sesión.
+  */
   useEffect(() => {
     if (!loading && !user) {
       router.replace(
@@ -144,23 +191,37 @@ export default function DashboardShell({
     router,
   ]);
 
+  /*
+    Cerramos los menús cada vez
+    que cambia la página.
+  */
   useEffect(() => {
     setSidebarOpen(false);
     setProfileOpen(false);
   }, [pathname]);
 
-  const currentTitle = useMemo(
-    () =>
-      routeTitles[pathname] ??
-      "Visiona",
-    [pathname],
-  );
+  /*
+    Título superior dependiendo
+    de la sección actual.
+  */
+  const currentTitle =
+    useMemo(
+      () =>
+        routeTitles[pathname] ??
+        "Visiona",
+      [pathname],
+    );
 
   function handleLogout(): void {
     logout();
+
     router.push("/");
   }
 
+  /*
+    Pantalla de carga mientras
+    recuperamos la sesión.
+  */
   if (loading || !user) {
     return (
       <main className="dashboard-loader">
@@ -179,14 +240,22 @@ export default function DashboardShell({
     user.name.split(" ")[0];
 
   /*
-    Solamente la cuenta de Gael
-    tiene dos solicitudes iniciales.
+    Gael es la cuenta principal
+    con información precargada.
+
+    Los usuarios nuevos empiezan
+    desde cero.
   */
   const accountIsGael =
     user.id === "gael-demo";
 
   return (
     <div className="dashboard-shell">
+
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
+
       <aside
         className={`dashboard-sidebar ${
           sidebarOpen
@@ -194,6 +263,8 @@ export default function DashboardShell({
             : ""
         }`}
       >
+        {/* LOGO */}
+
         <div className="sidebar-header">
           <Logo light />
 
@@ -209,6 +280,8 @@ export default function DashboardShell({
           </button>
         </div>
 
+        {/* PERFIL */}
+
         <div className="sidebar-profile">
           <div className="sidebar-profile-avatar">
             {firstName
@@ -222,11 +295,12 @@ export default function DashboardShell({
             </strong>
 
             <span>
-              Nivel {user.level} ·
-              Explorador
+              Nivel {user.level} · Explorador
             </span>
           </div>
         </div>
+
+        {/* NIVEL */}
 
         <div className="sidebar-level">
           <div>
@@ -242,13 +316,16 @@ export default function DashboardShell({
           <div className="sidebar-level-track">
             <span
               style={{
-                width: accountIsGael
-                  ? "62%"
-                  : "0%",
+                width:
+                  accountIsGael
+                    ? "62%"
+                    : "0%",
               }}
             />
           </div>
         </div>
+
+        {/* NAVEGACIÓN */}
 
         <nav className="sidebar-navigation">
           <span className="sidebar-section-label">
@@ -269,10 +346,25 @@ export default function DashboardShell({
                       navigationItem.href,
                     );
 
+              /*
+                Gael tiene dos solicitudes
+                iniciales.
+
+                Las cuentas nuevas no muestran
+                ningún número.
+              */
               const showRequestsBadge =
                 navigationItem.href ===
                   "/dashboard/solicitudes" &&
                 accountIsGael;
+
+              /*
+                Detectamos el apartado Premium
+                para mostrar la insignia PRO.
+              */
+              const isPremiumItem =
+                navigationItem.href ===
+                "/dashboard/premium";
 
               return (
                 <Link
@@ -296,14 +388,28 @@ export default function DashboardShell({
                     }
                   </span>
 
+                  {/* BADGE PREMIUM */}
+
+                  {isPremiumItem && (
+                    <small className="sidebar-premium-badge">
+                      PRO
+                    </small>
+                  )}
+
+                  {/* CONTADOR SOLICITUDES GAEL */}
+
                   {showRequestsBadge && (
-                    <small>2</small>
+                    <small>
+                      2
+                    </small>
                   )}
                 </Link>
               );
             },
           )}
         </nav>
+
+        {/* PARTE INFERIOR */}
 
         <div className="sidebar-bottom">
           <div className="sidebar-tip">
@@ -328,10 +434,15 @@ export default function DashboardShell({
             onClick={handleLogout}
           >
             <LogOut size={19} />
+
             Cerrar sesión
           </button>
         </div>
       </aside>
+
+      {/* =================================================
+          OVERLAY MÓVIL
+      ================================================= */}
 
       {sidebarOpen && (
         <button
@@ -344,8 +455,18 @@ export default function DashboardShell({
         />
       )}
 
+      {/* =================================================
+          CONTENIDO PRINCIPAL
+      ================================================= */}
+
       <section className="dashboard-main">
+
+        {/* HEADER */}
+
         <header className="dashboard-header">
+
+          {/* IZQUIERDA */}
+
           <div className="dashboard-header-left">
             <button
               type="button"
@@ -359,7 +480,9 @@ export default function DashboardShell({
             </button>
 
             <div>
-              <span>VISIONA</span>
+              <span>
+                VISIONA
+              </span>
 
               <h1>
                 {currentTitle}
@@ -367,7 +490,12 @@ export default function DashboardShell({
             </div>
           </div>
 
+          {/* DERECHA */}
+
           <div className="dashboard-header-actions">
+
+            {/* BUSCADOR */}
+
             <div className="dashboard-search">
               <Search size={18} />
 
@@ -376,6 +504,8 @@ export default function DashboardShell({
                 placeholder="Buscar en Visiona..."
               />
             </div>
+
+            {/* NOTIFICACIONES */}
 
             <button
               type="button"
@@ -388,6 +518,8 @@ export default function DashboardShell({
                 <span className="notification-dot" />
               )}
             </button>
+
+            {/* PERFIL */}
 
             <div className="dashboard-profile-menu">
               <button
@@ -422,8 +554,11 @@ export default function DashboardShell({
                 />
               </button>
 
+              {/* MENÚ PERFIL */}
+
               {profileOpen && (
                 <div className="profile-dropdown">
+
                   <Link href="/dashboard/perfil">
                     <UserRound
                       size={18}
@@ -438,7 +573,9 @@ export default function DashboardShell({
                       handleLogout
                     }
                   >
-                    <LogOut size={18} />
+                    <LogOut
+                      size={18}
+                    />
 
                     Cerrar sesión
                   </button>
@@ -447,6 +584,8 @@ export default function DashboardShell({
             </div>
           </div>
         </header>
+
+        {/* CONTENIDO DE CADA PÁGINA */}
 
         <div className="dashboard-content">
           {children}

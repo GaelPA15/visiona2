@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
 
 interface LogoProps {
   compact?: boolean;
@@ -13,11 +12,17 @@ export default function Logo({
   return (
     <Link
       href="/"
-      className={`visiona-logo ${light ? "visiona-logo-light" : ""}`}
+      className={`visiona-logo ${
+        light ? "visiona-logo-light" : ""
+      }`}
       aria-label="Ir al inicio de Visiona"
     >
       <span className="visiona-logo-icon">
-        <Sparkles size={20} strokeWidth={2.5} />
+        <img
+          src="/visiona-logo.jpg"
+          alt="Logo de Visiona"
+          className="visiona-logo-image"
+        />
       </span>
 
       {!compact && (

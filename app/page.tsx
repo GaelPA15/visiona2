@@ -170,7 +170,7 @@ export default function HomePage() {
               <div className="future-card-header">
                 <div>
                   <span className="future-card-label">MI RUTA PERSONAL</span>
-                  <h3>Hola, Gael 👋</h3>
+                  <h3>Hola, Alberto 👋</h3>
                 </div>
 
                 <div className="future-avatar">G</div>
